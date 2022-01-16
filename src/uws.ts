@@ -1,7 +1,10 @@
 import type { WebSocket, TemplatedApp } from "uWebSockets.js"
-import { Client, ClientStatus, Transport } from "./transport"
 
-export interface WebsocketOptions {
+import { Transport } from "./transport"
+import { ClientStatus } from "./types"
+import { Client } from "./client"
+
+export interface uWebsocketOptions {
   maxPayloadLength?: number
   idleTimeout?: number
   compression?: number
@@ -31,7 +34,7 @@ export class uWebsocketTransport extends Transport<WebSocket> {
   public app: TemplatedApp
   private _clients: WeakMap<WebSocket, uWebSocketClient> = new WeakMap()
 
-  constructor(options: WebsocketOptions & { server: TemplatedApp }) {
+  constructor(options: uWebsocketOptions & { server: TemplatedApp }) {
     super()
 
     const { server, ...wsOptions } = options

@@ -1,7 +1,9 @@
 import { IncomingMessage } from "http"
 import WebSocket from "ws"
 
-import { Client, ClientStatus, Transport } from "./transport"
+import { Transport } from "./transport"
+import { ClientStatus } from "./types"
+import { Client } from "./client"
 
 const promiseCallback = (resolve: (value?: any) => void, reject: (err?: any) => void, cb?: (error?: Error) => void) => {
   return (error?: Error) => {

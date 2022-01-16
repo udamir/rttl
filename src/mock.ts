@@ -1,35 +1,5 @@
-import { Client, Transport } from "./transport"
-
-const noop = () => { /**/ }
-
-export interface IClientInjectParams {
-  connectionDelay?: number
-  headers?: { [key: string]: string | string[] | undefined }
-}
-
-export enum ClientSocketState {
-  CONNECTING = 0,
-  OPEN = 1,
-  CLOSING = 2,
-  CLOSED = 3,
-}
-
-export interface MockSocket {
-  readyState: ClientSocketState
-
-  onopen: (event: { type: "open" }) => void
-  onerror: (event: { type: "error", message: string, error: any }) => void
-  onclose: (event: { type: "close", code: number, reason: any}) => void
-  onmessage: (event: { type: "message", data: any }) => void
-  close: (code?: number, reason?: string) => void
-  send: (data: any) => void
-}
-
-export class MockTransport extends Transport<MockSocket> {
-  public close(cb?: (error?: Error) => void): Promise<void> {
-    return Promise.resolve(cb && cb())
-  }
-}
+import { ClientSocketState, MockSocket } from "./types"
+import { Client } from "./client"
 
 export class MockClient extends Client<MockSocket> {
 
