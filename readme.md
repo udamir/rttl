@@ -35,18 +35,18 @@ const rtt = new uWebSocketTransport({ server })
 ```ts
 
 // handle client connection event
-rtt.onConnection((client) => {
+rtt.onConnection((client: Client) => {
   // ...
 })
 
 // handle incoming messages
-rtt.onMessage((client, data) => {
-  const message = JSON.parse(data)
+rtt.onMessage((client: Client, data: Buffer, isBinary: boolean) => {
+  const message = isBinary ? data : JSON.parse(data.toString())
   // ...
 })
 
 // handle client disconnection
-rtt.onDisconnect((client: Client<T>, code?: number, data?: any) => {
+rtt.onDisconnect((client: Client, code: number, data: string) => {
   // ...
 })
 
@@ -68,7 +68,7 @@ rtt.close()
 const ws = wst.inject(`/test?param=1`, { headers: { "test-header": "1234" } })
 
 // handle message events
-ws3.onmessage = (event) => {
+ws.onmessage = (event) => {
   const message = JSON.parse(event.data)
   // ...
 }
