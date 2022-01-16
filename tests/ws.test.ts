@@ -14,9 +14,9 @@ const initEnv = () => {
   server.listen(port)
 }
 
-const closeEnv = async (done: any) => {
+const closeEnv = async () => {
   await wst.close()
-  server.close(done)
+  server.close()
 }
 
 describe("Websocket transport test 1", () => {

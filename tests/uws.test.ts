@@ -16,12 +16,11 @@ const initEnv = () => {
   })
 }
 
-const closeEnv = async (done: any) => {
+const closeEnv = async () => {
   await wst.close()
   if (server.listener) {
     uws.us_listen_socket_close(server.listener)
   }
-  done()
 }
 
 describe("uWebsocket transport test 1", () => {
