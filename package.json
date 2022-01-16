@@ -1,10 +1,10 @@
 {
   "name": "rttl",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Realtime transport layer",
-  "input": "./src/index.ts",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "input": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/udamir/rttl.git"
