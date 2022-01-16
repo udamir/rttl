@@ -48,7 +48,7 @@ export class WebsocketTransport extends Transport<WebSocket> {
         this.handlers.disconnect(client, code, data.toString())
         client.status = ClientStatus.disconnected
       })
-      ws.on("message", (data: any) => this.handlers.message(client, data))
+      ws.on("message", (data: Buffer, isBinary) => this.handlers.message(client, data, isBinary))
 
       client.status = ClientStatus.connected
       this.clients.add(client)

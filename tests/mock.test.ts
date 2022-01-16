@@ -29,8 +29,8 @@ describe("Mock transport test 1", () => {
 
   test("WS server should get message from ws1", (done) => {
     const msg = { type: "text", text: "test" }
-    wst.onMessage((client, data: any) => {
-      const message = JSON.parse(data)
+    wst.onMessage((client, data) => {
+      const message = JSON.parse(data.toString())
       expect(message).toMatchObject(msg)
       expect(client).toBe(client1)
       done()
@@ -51,7 +51,7 @@ describe("Mock transport test 1", () => {
   })
 
   test("WS server should get disconnect event from ws1", (done) => {
-    wst.onDisconnect((client, code?: number, data?: any) => {
+    wst.onDisconnect((client, code, data) => {
       expect(code).toBe(4001)
       expect(data).toBe("test")
       expect(client).toBe(client1)

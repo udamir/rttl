@@ -29,7 +29,7 @@ export abstract class Transport<T = any> {
    * Register handler for client message event
    * @param cb - message handler
    */
-  public onMessage(cb: (client: Client<T>, data: any) => void) {
+  public onMessage(cb: (client: Client<T>, data: Buffer, isBinary: boolean) => void) {
     this.handlers.message = cb
   }
 
@@ -37,7 +37,7 @@ export abstract class Transport<T = any> {
    * Register handler for client disconnection event
    * @param cb - disconnection handler
    */
-  public onDisconnect(cb: (client: Client<T>, code?: number, data?: any) => void) {
+  public onDisconnect(cb: (client: Client<T>, code: number, data: string) => void) {
     this.handlers.disconnect = cb
   }
 

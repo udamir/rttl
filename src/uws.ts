@@ -87,8 +87,7 @@ export class uWebsocketTransport extends Transport<WebSocket> {
 
       message: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
         const client = this._clients.get(ws)!
-
-        this.handlers.message(client, Buffer.from(message.slice(0)).toString())
+        this.handlers.message(client, Buffer.from(message.slice(0)), isBinary)
       },
     })
   }
