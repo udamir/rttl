@@ -1,3 +1,5 @@
+import { ClientSocketState, IClientInjectParams, MockSocket, MockClient } from "./mock"
+
 export enum ErrorCode {
   NormalClose = 1000,
   JoinError = 4000,
@@ -20,7 +22,7 @@ const noop = () => { /**/ }
 /**
  * Abstract client class
  */
-export abstract class Client<T> {
+export abstract class Client<T = any> {
   /**
    * conection path
    */
@@ -71,7 +73,7 @@ export abstract class Client<T> {
 /**
  * Abstarct class for Transport
  */
-export abstract class Transport<T> {
+export abstract class Transport<T = any> {
   public clients: Set<Client<T>> = new Set()
 
   protected handlers: any = {
@@ -119,4 +121,44 @@ export abstract class Transport<T> {
    * @param cb - error handler
    */
   public abstract close(cb?: (error?: Error) => void): Promise<void>
+
+  /**
+   * Inject mock client
+   * @param url - connection url
+   * @param params.connectionDelay - connection deleay (optional)
+   * @param params.headers - connection headers (optional)
+   */
+  public inject(url: string = "/", params: IClientInjectParams = {}) {
+    const { headers, connectionDelay } = params
+
+    const socket: MockSocket = {
+      readyState: ClientSocketState.OPEN,
+
+      onopen: noop,
+      onerror: noop,
+      onclose: noop,
+      onmessage: noop,
+
+      send: (data: any) => {
+        this.handlers.message(client, data)
+      },
+
+      close: (code: number = 0, reason: string = "") => {
+        client.status = ClientStatus.disconnecting
+        setTimeout(() => {
+          this.handlers.disconnect(client, code, reason)
+          client.status = ClientStatus.disconnected
+          this.clients.delete(client)
+        }, connectionDelay)
+      },
+    }
+    const client: Client<any> = new MockClient(socket, url, headers, connectionDelay)
+
+    setTimeout(() => socket.onopen({ type: "open" }), connectionDelay)
+
+    client.status = ClientStatus.connected
+    this.clients.add(client)
+    this.handlers.connection(client)
+    return socket
+  }
 }

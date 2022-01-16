@@ -1,4 +1,4 @@
-import { Client, ClientStatus, Transport } from "./transport"
+import { Client, Transport } from "./transport"
 
 const noop = () => { /**/ }
 
@@ -14,7 +14,7 @@ export enum ClientSocketState {
   CLOSED = 3,
 }
 
-export interface IClientSocket {
+export interface MockSocket {
   readyState: ClientSocketState
 
   onopen: (event: { type: "open" }) => void
@@ -25,49 +25,15 @@ export interface IClientSocket {
   send: (data: any) => void
 }
 
-export class MockTransport extends Transport<IClientSocket> {
+export class MockTransport extends Transport<MockSocket> {
   public close(cb?: (error?: Error) => void): Promise<void> {
     return Promise.resolve(cb && cb())
   }
-
-  public inject(url: string = "/", params: IClientInjectParams = {}) {
-    const { headers, connectionDelay, ...handlers } = params
-
-    const socket: IClientSocket = {
-      readyState: ClientSocketState.OPEN,
-
-      onopen: noop,
-      onerror: noop,
-      onclose: noop,
-      onmessage: noop,
-
-      send: (data: any) => {
-        this.handlers.message(client, data)
-      },
-
-      close: (code: number = 0, reason: string = "") => {
-        client.status = ClientStatus.disconnecting
-        setTimeout(() => {
-          this.handlers.disconnect(client, code, reason)
-          client.status = ClientStatus.disconnected
-          this.clients.delete(client)
-        }, connectionDelay)
-      },
-    }
-    const client = new MockClient(socket, url, headers, connectionDelay)
-
-    setTimeout(() => socket.onopen({ type: "open" }), connectionDelay)
-
-    client.status = ClientStatus.connected
-    this.clients.add(client)
-    this.handlers.connection(client)
-    return socket
-  }
 }
 
-export class MockClient extends Client<IClientSocket> {
+export class MockClient extends Client<MockSocket> {
 
-  constructor(public socket: IClientSocket, url: string, public headers = {}, private connectionDelay = 5) {
+  constructor(public socket: MockSocket, url: string, public headers = {}, private connectionDelay = 5) {
     super()
     const parsedUrl = new URL(url, "ws://localhost/")
     this.path = parsedUrl.pathname

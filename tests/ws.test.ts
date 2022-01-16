@@ -1,7 +1,7 @@
 import * as http from "http"
 import WebSocket from "ws"
 
-import { Client, ClientStatus, WebsocketTransport } from "../src"
+import { Client, ClientStatus, MockSocket, WebsocketTransport } from "../src"
 
 const port = 3000
 let wst: WebsocketTransport
@@ -104,5 +104,59 @@ describe("Websocket transport test 2", () => {
       done()
     }
     client2.terminate(4001, "test")
+  })
+})
+
+describe("Websocket transport test 3", () => {
+  beforeAll(initEnv)
+  afterAll(closeEnv)
+
+  let ws3: MockSocket
+  let client3: Client<WebSocket>
+
+  test(`Mock client should inject to path with query and headers`, (done) => {
+    wst.onConnection((client) => {
+      client3 = client
+      expect(wst.clients.has(client)).toBe(true)
+      expect(client.path).toBe("/test")
+      expect(client.query).toBe("param=1")
+      expect(client.headers).toMatchObject({ "test-header": "1234" })
+      expect(client.status).toBe(ClientStatus.connected)
+      done()
+    })
+    ws3 = wst.inject(`ws://localhost:${port}/test?param=1`, { headers: { "test-header": "1234" } })
+  })
+
+  test("WS server should get message from mock client", (done) => {
+    const msg = { type: "text", text: "test" }
+    wst.onMessage((client, data: any) => {
+      const message = JSON.parse(data)
+      expect(message).toMatchObject(msg)
+      expect(client).toBe(client3)
+      done()
+    })
+    ws3.onopen = (() => {
+      ws3.send(JSON.stringify({ type: "text", text: "test"}))
+    })
+  })
+
+  test("Mock client should get message from server", (done) => {
+    const msg = { type: "text", text: "test 2" }
+    ws3.onmessage = (event) => {
+      const message = JSON.parse(event.data as string)
+      expect(message).toMatchObject(msg)
+      done()
+    }
+    client3.send(JSON.stringify(msg), (err) => expect(err).toBeUndefined())
+  })
+
+  test("Mock client should get close event on termination from server", (done) => {
+    ws3.onclose = (event) => {
+      expect(event.code).toBe(4001)
+      expect(event.reason).toBe("test")
+      expect(ws3.readyState).toBe(WebSocket.CLOSED)
+      done()
+    }
+    client3.terminate(4001, "test")
   })
 })

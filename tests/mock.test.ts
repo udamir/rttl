@@ -1,4 +1,4 @@
-import { ClientStatus, MockTransport, IClientSocket, Client, ClientSocketState } from "../src"
+import { ClientStatus, MockTransport, MockSocket, Client, ClientSocketState } from "../src"
 
 let wst: MockTransport
 
@@ -14,8 +14,8 @@ describe("Mock transport test 1", () => {
   beforeAll(initEnv)
   afterAll(closeEnv)
 
-  let ws1: IClientSocket
-  let client1: Client<IClientSocket>
+  let ws1: MockSocket
+  let client1: Client<MockSocket>
 
   test(`ws1 client should connect to server`, (done) => {
     wst.onConnection((client) => {
@@ -70,8 +70,8 @@ describe("Mock transport test 2", () => {
   beforeAll(initEnv)
   afterAll(closeEnv)
 
-  let ws2: IClientSocket
-  let client2: Client<IClientSocket>
+  let ws2: MockSocket
+  let client2: Client<MockSocket>
 
   test(`ws2 client should connect to server to path with query and headers`, (done) => {
     wst.onConnection((client) => {
