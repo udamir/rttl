@@ -1,6 +1,6 @@
 {
   "name": "rttl",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Realtime transport layer",
   "input": "src/index.ts",
   "main": "dist/index.js",

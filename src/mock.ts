@@ -21,9 +21,6 @@ export class MockClient extends Client<MockSocket> {
 
   protected _terminate(code = 1006, reason?: any): void {
     this.socket.readyState = ClientSocketState.CLOSING
-    setTimeout(() => {
-      this.socket.readyState = ClientSocketState.CLOSED
-      this.socket.onclose({ type: "close", code, reason })
-    }, this.connectionDelay)
+    setTimeout(() => this.socket.close(code, reason), this.connectionDelay)
   }
 }

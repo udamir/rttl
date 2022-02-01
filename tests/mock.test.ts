@@ -55,7 +55,7 @@ describe("Mock transport test 1", () => {
       expect(code).toBe(4001)
       expect(data).toBe("test")
       expect(client).toBe(client1)
-      expect(client.status).toBe(ClientStatus.disconnecting)
+      expect(client.status).toBe(ClientStatus.disconnected)
       done()
     })
     ws1.close(4001, "test")
@@ -81,12 +81,25 @@ describe("Mock transport test 2", () => {
       expect(client.query).toBe("param=1")
       expect(client.headers).toMatchObject({ "test-header": "1234" })
       expect(client.status).toBe(ClientStatus.connected)
-      done()
     })
+
     ws2 = wst.inject("/test?param=1", { headers: { "test-header": "1234" } })
+
+    ws2.onopen = (event) => {
+      expect(event.type).toBe("open")
+      expect(client2).not.toBeUndefined()
+      expect(ws2.readyState).toBe(ClientSocketState.OPEN)
+      done()
+    }
   })
 
   test("ws2 server should connection termination from server", (done) => {
+    wst.onDisconnect((client, code, data) => {
+      expect(code).toEqual(4001)
+      expect(data).toEqual("test")
+      expect(client.status).toBe(ClientStatus.disconnected)
+    })
+
     ws2.onclose = (event: any) => {
       expect(event.code).toBe(4001)
       expect(event.reason).toBe("test")
