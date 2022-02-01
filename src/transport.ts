@@ -63,7 +63,7 @@ export abstract class Transport<T = any> {
    * @param params.headers - connection headers (optional)
    */
   public inject(url: string = "/", params: IClientInjectParams = {}) {
-    const { headers, connectionDelay } = params
+    const { headers, connectionDelay = 5 } = params
 
     const socket: MockSocket = {
       readyState: ClientSocketState.OPEN,
@@ -82,6 +82,7 @@ export abstract class Transport<T = any> {
         setTimeout(() => {
           this.handlers.disconnect(client, code, reason)
           client.status = ClientStatus.disconnected
+          socket.onclose({ type: "close", code, reason })
           this.clients.delete(client)
         }, connectionDelay)
       },
