@@ -80,10 +80,11 @@ export abstract class Transport<T = any> {
       close: (code: number = 0, reason: string = "") => {
         client.status = ClientStatus.disconnecting
         setTimeout(() => {
-          this.handlers.disconnect(client, code, reason)
-          client.status = ClientStatus.disconnected
-          socket.onclose({ type: "close", code, reason })
           this.clients.delete(client)
+          client.status = ClientStatus.disconnected
+          socket.readyState = ClientSocketState.CLOSED
+          this.handlers.disconnect(client, code, reason)
+          socket.onclose({ type: "close", code, reason })
         }, connectionDelay)
       },
     }
