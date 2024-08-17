@@ -56,7 +56,7 @@ export class uWebsocketTransport extends Transport<WebSocket<UpgradeParametes>> 
       upgrade: (res, req, context) => {
         // get all headers
         const headers: {[id: string]: string} = {}
-        req.forEach((key, value) => headers[key] = value)
+        req.forEach((key, value) => { headers[key] = value })
 
         const upgradeParams: UpgradeParametes = {
           url: req.getUrl(),
@@ -87,7 +87,8 @@ export class uWebsocketTransport extends Transport<WebSocket<UpgradeParametes>> 
       },
 
       close: (ws: WebSocket<UpgradeParametes>, code: number, message: ArrayBuffer) => {
-        const client = this._clients.get(ws)!
+        const client = this._clients.get(ws)
+        if (!client) { return }
         this.clients.delete(client)
         this._clients.delete(ws)
         client.status = clientStatus.disconnecting
