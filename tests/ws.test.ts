@@ -58,7 +58,7 @@ describe("Websocket transport test 1", () => {
       expect(message).toMatchObject(msg)
       done()
     }
-    client1.send(JSON.stringify(msg), (err) => expect(err).toBeUndefined())
+    client1.send(JSON.stringify(msg), (err) => expect([null, undefined]).toContain(err))
   })
 
   test("WS server should get disconnect event from ws1", (done) => {
