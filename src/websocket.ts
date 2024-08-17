@@ -1,13 +1,13 @@
-import { IncomingMessage } from "http"
+import type { IncomingMessage } from "node:http"
 import WebSocket from "ws"
 
 import { Transport } from "./transport"
-import { ClientStatus } from "./types"
+import { clientStatus } from "./consts"
 import { Client } from "./client"
 
 const promiseCallback = (resolve: (value?: any) => void, reject: (err?: any) => void, cb?: (error?: Error) => void) => {
   return (error?: Error) => {
-    cb && cb(error)
+    cb?.(error)
     if (error) { return reject (error) }
     return resolve()
   }
@@ -19,7 +19,7 @@ export class WebsocketClient extends Client<WebSocket> {
     super()
     const [ path, query ] = (req.url || "").split("?")
     this.path = path
-    this.query = query
+    this.query = query ?? ""
     this.headers = req.headers
   }
 
@@ -44,13 +44,13 @@ export class WebsocketTransport extends Transport<WebSocket> {
       const client = new WebsocketClient(ws, req)
       ws.on("close", (code, data) => {
         this.clients.delete(client)
-        client.status = ClientStatus.disconnecting
+        client.status = clientStatus.disconnecting
         this.handlers.disconnect(client, code, data.toString())
-        client.status = ClientStatus.disconnected
+        client.status = clientStatus.disconnected
       })
       ws.on("message", (data: Buffer, isBinary) => this.handlers.message(client, data, isBinary))
 
-      client.status = ClientStatus.connected
+      client.status = clientStatus.connected
       this.clients.add(client)
       this.handlers.connection(client)
     })

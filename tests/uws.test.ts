@@ -1,7 +1,8 @@
-import WebSocket from "ws"
 import * as uws from "uWebSockets.js"
+import WebSocket from "ws"
 
-import { Client, ClientStatus, uWebsocketTransport } from "../src"
+import { type Client, type UpgradeParametes, uWebsocketTransport } from "../src"
+import { clientStatus } from "../src/consts"
 
 const port = 3001
 let wst: uWebsocketTransport
@@ -28,14 +29,14 @@ describe("uWebsocket transport test 1", () => {
   afterAll(closeEnv)
 
   let ws1: WebSocket
-  let client1: Client<uws.WebSocket>
+  let client1: Client<uws.WebSocket<UpgradeParametes>>
 
-  test(`ws1 client should connect to server`, (done) => {
+  test("ws1 client should connect to server", (done) => {
 
     wst.onConnection((client) => {
       client1 = client
       expect(wst.clients.has(client)).toBe(true)
-      expect(client.status).toBe(ClientStatus.connected)
+      expect(client.status).toBe(clientStatus.connected)
       done()
     })
     ws1 = new WebSocket(`ws://localhost:${port}`)
@@ -69,7 +70,7 @@ describe("uWebsocket transport test 1", () => {
       expect(code).toBe(4001)
       expect(data).toBe("test")
       expect(client).toBe(client1)
-      expect(client.status).toBe(ClientStatus.disconnecting)
+      expect(client.status).toBe(clientStatus.disconnecting)
       done()
     })
     ws1.close(4001, "test")
@@ -85,16 +86,16 @@ describe("uWebsocket transport test 2", () => {
   afterAll(closeEnv)
 
   let ws2: WebSocket
-  let client2: Client<uws.WebSocket>
+  let client2: Client<uws.WebSocket<{}>>
 
-  test(`ws2 client should connect to server to path with query and headers`, (done) => {
+  test("ws2 client should connect to server to path with query and headers", (done) => {
     wst.onConnection((client) => {
       client2 = client
       expect(wst.clients.has(client)).toBe(true)
       expect(client.path).toBe("/test")
       expect(client.query).toBe("param=1")
       expect(client.headers).toMatchObject({ "test-header": "1234" })
-      expect(client.status).toBe(ClientStatus.connected)
+      expect(client.status).toBe(clientStatus.connected)
       done()
     })
     ws2 = new WebSocket(`ws://localhost:${port}/test?param=1`, { headers: { "test-header": "1234" } })

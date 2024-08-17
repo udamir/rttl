@@ -1,14 +1,13 @@
-import { ClientSocketState, ClientStatus, IClientInjectParams, MockSocket } from "./types"
-import { Client } from "./client"
+import { clientSocketState, clientStatus, noop } from "./consts"
+import type { IClientInjectParams, MockSocket } from "./types"
+import type { Client } from "./client"
 import { MockClient } from "./mock"
-
-const noop = () => { /**/ }
 
 /**
  * Abstarct class for Transport
  */
-export abstract class Transport<T = any> {
-  public clients: Set<Client<T>> = new Set()
+export abstract class Transport<T> {
+  public clients: Set<Client<T> | MockClient> = new Set()
 
   protected handlers: any = {
     connection: noop,
@@ -62,11 +61,11 @@ export abstract class Transport<T = any> {
    * @param params.connectionDelay - connection deleay (optional)
    * @param params.headers - connection headers (optional)
    */
-  public inject(url: string = "/", params: IClientInjectParams = {}) {
+  public inject(url = "/", params: IClientInjectParams = {}) {
     const { headers, connectionDelay = 5 } = params
 
     const socket: MockSocket = {
-      readyState: ClientSocketState.OPEN,
+      readyState: clientSocketState.OPEN,
 
       onopen: noop,
       onerror: noop,
@@ -77,22 +76,22 @@ export abstract class Transport<T = any> {
         this.handlers.message(client, data)
       },
 
-      close: (code: number = 0, reason: string = "") => {
-        client.status = ClientStatus.disconnecting
+      close: (code = 0, reason = "") => {
+        client.status = clientStatus.disconnecting
         setTimeout(() => {
           this.clients.delete(client)
-          client.status = ClientStatus.disconnected
-          socket.readyState = ClientSocketState.CLOSED
+          client.status = clientStatus.disconnected
+          socket.readyState = clientSocketState.CLOSED
           this.handlers.disconnect(client, code, reason)
           socket.onclose({ type: "close", code, reason })
         }, connectionDelay)
       },
     }
-    const client: Client<any> = new MockClient(socket, url, headers, connectionDelay)
+    const client = new MockClient(socket, url, headers, connectionDelay)
 
     setTimeout(() => socket.onopen({ type: "open" }), connectionDelay)
 
-    client.status = ClientStatus.connected
+    client.status = clientStatus.connected
     this.clients.add(client)
     this.handlers.connection(client)
     return socket
@@ -101,6 +100,6 @@ export abstract class Transport<T = any> {
 
 export class MockTransport extends Transport<MockSocket> {
   public close(cb?: (error?: Error) => void): Promise<void> {
-    return Promise.resolve(cb && cb())
+    return Promise.resolve(cb?.())
   }
 }

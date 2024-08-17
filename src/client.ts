@@ -1,9 +1,10 @@
-import { ClientStatus } from "./types"
+import type { ClientStatus } from "./types"
+import { clientStatus } from "./consts"
 
 /**
  * Abstract client class
  */
- export abstract class Client<T = any> {
+ export abstract class Client<T> {
   /**
    * conection path
    */
@@ -20,7 +21,7 @@ import { ClientStatus } from "./types"
   /**
    * client connection status
    */
-  public status: ClientStatus = ClientStatus.connecting
+  public status: ClientStatus = clientStatus.connecting
 
   /**
    * transport socket
@@ -33,7 +34,7 @@ import { ClientStatus } from "./types"
    * @param cb - callback on error/complete
    * @returns promise
    */
-  public send(data: any, cb?: (error?: Error) => void) {
+  public send(data: unknown, cb?: (error?: Error) => void) {
     return this._send(data, cb)
   }
 
@@ -42,11 +43,11 @@ import { ClientStatus } from "./types"
    * @param code - termination code
    * @param data - termination reason
    */
-  public terminate(code?: number, data?: any): void {
-    this.status = ClientStatus.disconnecting
+  public terminate(code?: number, data?: unknown): void {
+    this.status = clientStatus.disconnecting
     this._terminate(code, data)
   }
 
-  protected abstract _send(data: any, cb?: (error?: Error) => void): Promise<void>
-  protected abstract _terminate(code?: number, data?: any): void
+  protected abstract _send(data: unknown, cb?: (error?: Error) => void): Promise<void>
+  protected abstract _terminate(code?: number, data?: unknown): void
 }

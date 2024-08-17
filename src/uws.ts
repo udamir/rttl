@@ -1,7 +1,7 @@
 import type { WebSocket, TemplatedApp } from "uWebSockets.js"
 
 import { Transport } from "./transport"
-import { ClientStatus } from "./types"
+import { clientStatus } from "./consts"
 import { Client } from "./client"
 
 export interface uWebsocketOptions {
@@ -11,18 +11,28 @@ export interface uWebsocketOptions {
   maxBackpressure?: number
 }
 
-export class uWebSocketClient extends Client<WebSocket> {
+export interface UpgradeParametes {
+  url: string
+  query: string
+  headers: Record<string, string>
+  connection: {
+    remoteAddress: string
+  }
+}
 
-  constructor(public socket: WebSocket) {
+export class uWebSocketClient extends Client<WebSocket<UpgradeParametes>> {
+
+  constructor(public socket: WebSocket<UpgradeParametes>) {
     super()
-    this.path = socket.url
-    this.headers = socket.headers
-    this.query = socket.query
+    const params = socket.getUserData();
+    this.path = params.url
+    this.headers = params.headers
+    this.query = params.query
   }
 
   public _send(data: any, cb?: (error?: Error) => void): Promise<void> {
     this.socket.send(data, false, false)
-    return Promise.resolve(cb && cb())
+    return Promise.resolve(cb?.())
   }
 
   public _terminate(code?: number, data?: string) {
@@ -30,9 +40,9 @@ export class uWebSocketClient extends Client<WebSocket> {
   }
 }
 
-export class uWebsocketTransport extends Transport<WebSocket> {
+export class uWebsocketTransport extends Transport<WebSocket<UpgradeParametes>> {
   public app: TemplatedApp
-  private _clients: WeakMap<WebSocket, uWebSocketClient> = new WeakMap()
+  private _clients: WeakMap<WebSocket<UpgradeParametes>, uWebSocketClient> = new WeakMap()
 
   constructor(options: uWebsocketOptions & { server: TemplatedApp }) {
     super()
@@ -48,9 +58,9 @@ export class uWebsocketTransport extends Transport<WebSocket> {
         const headers: {[id: string]: string} = {}
         req.forEach((key, value) => headers[key] = value)
 
-        const upgradeParams = {
+        const upgradeParams: UpgradeParametes = {
           url: req.getUrl(),
-          query: req.getQuery(),
+          query: req.getQuery() ?? "",
 
           headers,
           connection: {
@@ -68,31 +78,31 @@ export class uWebsocketTransport extends Transport<WebSocket> {
         )
       },
 
-      open: async (ws: WebSocket) => {
+      open: async (ws: WebSocket<UpgradeParametes>) => {
         const client = new uWebSocketClient(ws)
-        client.status = ClientStatus.connected
+        client.status = clientStatus.connected
         this._clients.set(ws, client)
         this.clients.add(client)
         this.handlers.connection(client)
       },
 
-      close: (ws: WebSocket, code: number, message: ArrayBuffer) => {
+      close: (ws: WebSocket<UpgradeParametes>, code: number, message: ArrayBuffer) => {
         const client = this._clients.get(ws)!
         this.clients.delete(client)
         this._clients.delete(ws)
-        client.status = ClientStatus.disconnecting
+        client.status = clientStatus.disconnecting
         this.handlers.disconnect(client, code, Buffer.from(message.slice(0)).toString())
-        client.status = ClientStatus.disconnected
+        client.status = clientStatus.disconnected
       },
 
-      message: (ws: WebSocket, message: ArrayBuffer, isBinary: boolean) => {
-        const client = this._clients.get(ws)!
+      message: (ws: WebSocket<UpgradeParametes>, message: ArrayBuffer, isBinary: boolean) => {
+        const client = this._clients.get(ws)
         this.handlers.message(client, Buffer.from(message.slice(0)), isBinary)
       },
     })
   }
 
   public close(cb?: (error?: Error) => void): Promise<void> {
-    return Promise.resolve(cb && cb())
+    return Promise.resolve(cb?.())
   }
 }

@@ -1,4 +1,5 @@
-import { ClientStatus, MockTransport, MockSocket, Client, ClientSocketState } from "../src"
+import { MockTransport, type MockSocket, type Client } from "../src"
+import { clientSocketState, clientStatus } from "../src/consts"
 
 let wst: MockTransport
 
@@ -17,11 +18,11 @@ describe("Mock transport test 1", () => {
   let ws1: MockSocket
   let client1: Client<MockSocket>
 
-  test(`ws1 client should connect to server`, (done) => {
+  test("ws1 client should connect to server", (done) => {
     wst.onConnection((client) => {
       client1 = client
       expect(wst.clients.has(client)).toBe(true)
-      expect(client.status).toBe(ClientStatus.connected)
+      expect(client.status).toBe(clientStatus.connected)
       done()
     })
     ws1 = wst.inject()
@@ -55,7 +56,7 @@ describe("Mock transport test 1", () => {
       expect(code).toBe(4001)
       expect(data).toBe("test")
       expect(client).toBe(client1)
-      expect(client.status).toBe(ClientStatus.disconnected)
+      expect(client.status).toBe(clientStatus.disconnected)
       done()
     })
     ws1.close(4001, "test")
@@ -73,14 +74,14 @@ describe("Mock transport test 2", () => {
   let ws2: MockSocket
   let client2: Client<MockSocket>
 
-  test(`ws2 client should connect to server to path with query and headers`, (done) => {
+  test("ws2 client should connect to server to path with query and headers", (done) => {
     wst.onConnection((client) => {
       client2 = client
       expect(wst.clients.has(client)).toBe(true)
       expect(client.path).toBe("/test")
       expect(client.query).toBe("param=1")
       expect(client.headers).toMatchObject({ "test-header": "1234" })
-      expect(client.status).toBe(ClientStatus.connected)
+      expect(client.status).toBe(clientStatus.connected)
     })
 
     ws2 = wst.inject("/test?param=1", { headers: { "test-header": "1234" } })
@@ -88,7 +89,7 @@ describe("Mock transport test 2", () => {
     ws2.onopen = (event) => {
       expect(event.type).toBe("open")
       expect(client2).not.toBeUndefined()
-      expect(ws2.readyState).toBe(ClientSocketState.OPEN)
+      expect(ws2.readyState).toBe(clientSocketState.OPEN)
       done()
     }
   })
@@ -97,13 +98,13 @@ describe("Mock transport test 2", () => {
     wst.onDisconnect((client, code, data) => {
       expect(code).toEqual(4001)
       expect(data).toEqual("test")
-      expect(client.status).toBe(ClientStatus.disconnected)
+      expect(client.status).toBe(clientStatus.disconnected)
     })
 
     ws2.onclose = (event: any) => {
       expect(event.code).toBe(4001)
       expect(event.reason).toBe("test")
-      expect(ws2.readyState).toBe(ClientSocketState.CLOSED)
+      expect(ws2.readyState).toBe(clientSocketState.CLOSED)
       done()
     }
     client2.terminate(4001, "test")

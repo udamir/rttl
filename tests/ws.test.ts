@@ -1,7 +1,8 @@
-import * as http from "http"
+import * as http from "node:http"
 import WebSocket from "ws"
 
-import { Client, ClientStatus, MockSocket, WebsocketTransport } from "../src"
+import { type Client, type MockSocket, WebsocketTransport } from "../src"
+import { clientStatus } from "../src/consts"
 
 const port = 3000
 let wst: WebsocketTransport
@@ -26,12 +27,12 @@ describe("Websocket transport test 1", () => {
   let ws1: WebSocket
   let client1: Client<WebSocket>
 
-  test(`ws1 client should connect to server`, (done) => {
+  test("ws1 client should connect to server", (done) => {
 
     wst.onConnection((client) => {
       client1 = client
       expect(wst.clients.has(client)).toBe(true)
-      expect(client.status).toBe(ClientStatus.connected)
+      expect(client.status).toBe(clientStatus.connected)
       done()
     })
     ws1 = new WebSocket(`ws://localhost:${port}`)
@@ -65,7 +66,7 @@ describe("Websocket transport test 1", () => {
       expect(code).toBe(4001)
       expect(data).toBe("test")
       expect(client).toBe(client1)
-      expect(client.status).toBe(ClientStatus.disconnecting)
+      expect(client.status).toBe(clientStatus.disconnecting)
       done()
     })
     ws1.close(4001, "test")
@@ -83,14 +84,14 @@ describe("Websocket transport test 2", () => {
   let ws2: WebSocket
   let client2: Client<WebSocket>
 
-  test(`ws2 client should connect to server to path with query and headers`, (done) => {
+  test("ws2 client should connect to server to path with query and headers", (done) => {
     wst.onConnection((client) => {
       client2 = client
       expect(wst.clients.has(client)).toBe(true)
       expect(client.path).toBe("/test")
       expect(client.query).toBe("param=1")
       expect(client.headers).toMatchObject({ "test-header": "1234" })
-      expect(client.status).toBe(ClientStatus.connected)
+      expect(client.status).toBe(clientStatus.connected)
       done()
     })
     ws2 = new WebSocket(`ws://localhost:${port}/test?param=1`, { headers: { "test-header": "1234" } })
@@ -114,14 +115,14 @@ describe("Websocket transport test 3", () => {
   let ws3: MockSocket
   let client3: Client<WebSocket>
 
-  test(`Mock client should inject to path with query and headers`, (done) => {
+  test("Mock client should inject to path with query and headers", (done) => {
     wst.onConnection((client) => {
       client3 = client
       expect(wst.clients.has(client)).toBe(true)
       expect(client.path).toBe("/test")
       expect(client.query).toBe("param=1")
       expect(client.headers).toMatchObject({ "test-header": "1234" })
-      expect(client.status).toBe(ClientStatus.connected)
+      expect(client.status).toBe(clientStatus.connected)
       done()
     })
     ws3 = wst.inject(`ws://localhost:${port}/test?param=1`, { headers: { "test-header": "1234" } })
